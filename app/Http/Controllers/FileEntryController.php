@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Storage;
 
 class FileEntryController extends Controller {
 
-	public function index()
+    public function index()
     {
         $entries = Fileentry::all();
 
@@ -27,16 +27,21 @@ class FileEntryController extends Controller {
         $extension = $file->getClientOriginalExtension();
 
         // Save the file to the local disk
-        Storage::disk('local')->put($file->getFilename() . '.' . $extension, File::get($file));
+        Storage::disk('pictures')->put($file->getFilename() . '.' . $extension, File::get($file));
 
         // Build the model
-        $entry = new Fileentry();
-        $entry->mime = $file->getClientMimeType();
-        $entry->original_filename = $file->getClientOriginalName();
-        $entry->filename = $file->getFilename() . '.' . $extension;
+//        $entry = new Fileentry();
+//        $entry->mime = $file->getClientMimeType();
+//        $entry->original_filename = $file->getClientOriginalName();
+//        $entry->filename = $file->getFilename() . '.' . $extension;
+//        // Save the entry
+//        $entry->save();
 
-        // Save the entry
-        $entry->save();
+        Fileentry::create([
+            'mime' => $file->getClientMimeType(),
+            'original_filename' => $file->getClientOriginalName(),
+            'filename' => $file->getFilename() . '.' . $extension
+        ]);
 
         return redirect('fileentry');
     }
@@ -44,8 +49,9 @@ class FileEntryController extends Controller {
     public function get($filename)
     {
         $entry = Fileentry::where('filename', '=', $filename)->firstOrFail();
-        $file = Storage::disk('local')->get($entry->filename);
+        $file = Storage::disk('pictures')->get($entry->filename);
 
+        // This works even if you don't explicitly set the header for the file.
         return (new Response($file, 200))
             ->header('Content-type', $entry->mime);
     }
